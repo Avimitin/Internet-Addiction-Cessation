@@ -28,8 +28,8 @@ pub mod file{
         }
 
         // cat return a copy of the file inner contents
-        pub fn cat(&self) -> String {
-            self.contents.clone()
+        pub fn cat(&self) -> &str {
+            &self.contents
         }
     }
 }
