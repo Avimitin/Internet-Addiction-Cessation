@@ -1,23 +1,35 @@
 pub mod file{
-    use std::fs::File;
-    use std::io::{BufReader, BufRead};
+    // TODO: delete allow(dead_code) one day
+    #[allow(dead_code)]
+    pub struct HostFile {
+        // location point to host file's file path
+        location: String,
+        // contents contain buffer of the host file
+        contents: String,
+    }
 
-    pub fn read_file_into_string(file_path: &'static str) -> Result<String, String> {
-        let mut content = String::new();
+    impl HostFile {
+        // new read conents from given file path and return a HostFile instance if
+        // read success.
+        pub fn new(file_path: &'static str) -> Result<HostFile, String> {
+            let contents = std::fs::read(file_path);
+            let contents = match contents {
+                Ok(contents) => match String::from_utf8(contents){
+                    Ok(buffer) => buffer,
+                    Err(err) => return Err(format!("File {} contains invalid contents: {}", file_path, err)),
+                },
+                Err(err) => return Err(format!("Read file '{}': {:?}'", file_path, err)),
+            };
 
-        let file = File::open(file_path);
-        let file = match file {
-            Ok(f) => f,
-            Err(e) => return Err(format!("Open file '{path}': {error}", path=file_path, error=e)),
-        };
-
-        let buffer = BufReader::new(file);
-        for line in buffer.lines() {
-            if let Ok(line) = line {
-                content += &line;
-            }
+            Ok(HostFile {
+                contents,
+                location: file_path.to_string(),
+            })
         }
 
-        Ok(content)
+        // cat return a copy of the file inner contents
+        pub fn cat(&self) -> String {
+            self.contents.clone()
+        }
     }
 }
