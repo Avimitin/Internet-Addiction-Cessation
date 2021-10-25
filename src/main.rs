@@ -1,26 +1,7 @@
-use std::fs::File;
-use std::io::{BufReader, BufRead};
+use auto_domain_blocker::file;
 
 fn main() {
     let path = "./fixtures/hosts.txt";
-    println!("{}", read_file_into_string(path).unwrap());
+    println!("{}", file::read_file_into_string(path).unwrap());
 }
 
-fn read_file_into_string(file_path: &'static str) -> Result<String, String> {
-    let mut content = String::new();
-
-    let file = File::open(file_path);
-    let file = match file {
-        Ok(f) => f,
-        Err(e) => return Err(format!("Open file '{path}': {error}", path=file_path, error=e)),
-    };
-
-    let buffer = BufReader::new(file);
-    for line in buffer.lines() {
-        if let Ok(line) = line {
-            content += &line;
-        }
-    }
-
-    Ok(content)
-}
