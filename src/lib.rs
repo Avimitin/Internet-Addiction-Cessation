@@ -31,5 +31,10 @@ pub mod file{
         pub fn cat(&self) -> &str {
             &self.contents
         }
+
+        // which return the file path of this host file
+        pub fn which(&self) -> &str {
+            &self.location
+        }
     }
 }
