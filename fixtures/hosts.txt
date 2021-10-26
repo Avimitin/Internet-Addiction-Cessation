@@ -1,1 +1,12 @@
+127.0.0.1 localhost
+
+## <!-- auto domain blocker -->
+# bilibili
 0.0.0.0 bilibili.com
+0.0.0.0 www.bilibili.com
+0.0.0.0 live.bilibili.com
+
+# youtube
+0.0.0.0 youtube.com
+
+## <!-- auto domain blocker -->
