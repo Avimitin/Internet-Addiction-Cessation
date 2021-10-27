@@ -39,3 +39,25 @@ pub mod host_file {
         }
     }
 }
+
+pub mod config_file {
+    use std::collections::HashMap;
+
+    #[allow(dead_code)]
+    pub struct Config {
+        location: String,
+        rule: BlockRule,
+    }
+
+    #[allow(dead_code)]
+    pub struct BlockRule {
+        limit: Limit,
+        domains: HashMap<String, Vec<String>>,
+    }
+
+    #[allow(dead_code)]
+    pub struct Limit {
+        start: String,
+        end: String,
+    }
+}
