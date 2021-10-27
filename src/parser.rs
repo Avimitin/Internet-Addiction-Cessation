@@ -1,14 +1,15 @@
 pub fn read_section(input: &str) -> String {
     let mut section = String::new();
 
-    let mut mark = HaveMarker::new();
+    let mut bound = Boundary::new("## <!-- auto domain blocker --->");
+
     for line in input.lines() {
-        if line.contains("## <!-- auto domain blocker --->") {
-            mark.toggle();
+        if line.contains(bound.pattern()) {
+            bound.toggle();
             continue;
         }
 
-        if mark.have() {
+        if bound.is_inside() {
             section.push_str(line.clone());
             section.push('\n');
         }
@@ -17,22 +18,28 @@ pub fn read_section(input: &str) -> String {
     section
 }
 
-struct HaveMarker {
-    have: bool,
+struct Boundary {
+    is_inside: bool,
+    pattern: &'static str,
 }
 
-impl HaveMarker {
-    fn new() -> HaveMarker {
-        HaveMarker {
-            have: false,
+impl Boundary {
+    fn new(pattern: &'static str) -> Boundary {
+        Boundary {
+            pattern,
+            is_inside: false,
         }
     }
 
     fn toggle(&mut self) {
-        self.have = !self.have;
+        self.is_inside = !self.is_inside;
     }
 
-    fn have(&self) -> bool {
-        self.have
+    fn is_inside(&self) -> bool {
+        self.is_inside
+    }
+
+    fn pattern(&self) -> &str {
+        self.pattern
     }
 }
