@@ -1,4 +1,4 @@
-use auto_domain_blocker::file::host_file;
+use auto_domain_blocker::host_file;
 
 fn main() {
     let path = "./fixtures/hosts.txt";

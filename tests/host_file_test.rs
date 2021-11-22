@@ -1,4 +1,4 @@
-use auto_domain_blocker::file::*;
+use auto_domain_blocker::host_file;
 
 const HOST_FILE_PATH: &str = "./fixtures/hosts.txt";
 
