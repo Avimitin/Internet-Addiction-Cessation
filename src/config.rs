@@ -30,4 +30,19 @@ impl Config {
 
         return config;
     }
+
+    pub fn build_domains(&self) -> String {
+        let mut s = String::new();
+        for (k, v) in &self.block_domains {
+            for prefix in v {
+                if prefix == "@" {
+                    s.push_str(format!("{domain}\n", domain = k).as_str());
+                } else {
+                    s.push_str(format!("{prefix}.{domain}\n", prefix = prefix, domain = k).as_str());
+                }
+            }
+        }
+
+        return s;
+    }
 }
