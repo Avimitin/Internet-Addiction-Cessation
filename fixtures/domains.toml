@@ -1,0 +1,7 @@
+[duration]
+start = "08:30"
+end = "21:30"
+
+[block_domains]
+"bilibili.com"=["www", "live", "@"]
+"youtube.com"=["www"]
