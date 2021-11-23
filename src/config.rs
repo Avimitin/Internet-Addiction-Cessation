@@ -1,5 +1,6 @@
 use serde::Deserialize;
 use std::collections::HashMap;
+use anyhow::Context;
 
 #[allow(dead_code)]
 #[derive(Deserialize)]
@@ -21,9 +22,10 @@ impl Config {
     // new read from configuration file from given path and parse it into Config struct.
     // Panic when no file found or fail to parse the contents into the Config struct.
     pub fn new(file_path: &str) -> Config {
-        let contents = std::fs::read_to_string(file_path).unwrap();
+        let contents = std::fs::read_to_string(file_path)
+            .with_context(||{format!("Read config file {} fail", file_path)}).unwrap();
         let config = toml::from_str(&contents)
-            .expect(format!("failed to read from config: {}", contents).as_str());
+            .with_context(||{format!("failed to read from config: {}", contents)}).unwrap();
 
         return config;
     }

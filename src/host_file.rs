@@ -9,12 +9,13 @@ pub struct HostFile {
 }
 
 #[allow(dead_code)]
-use std::error::Error;
+use anyhow::{Context, Result};
 impl HostFile {
     // new read conents from given file path and return a HostFile instance if
     // read success.
-    pub fn new(file_path: &'static str) -> Result<HostFile, Box<dyn Error>> {
-        let contents = std::fs::read_to_string(file_path)?;
+    pub fn new(file_path: &'static str) -> Result<HostFile> {
+        let contents = std::fs::read_to_string(file_path)
+            .with_context(|| format!("could not read file {}", file_path))?;
         let bound_index = HostFile::find_bound_index(&contents);
         Ok(HostFile {
             contents,
@@ -78,10 +79,12 @@ impl HostFile {
         return s;
     }
 
-    pub fn remove(&self) -> Result<(), Box<dyn Error>> {
+    pub fn remove(&self) -> Result<()> {
         let orig_content = self.exclude_domains();
-        std::fs::write(self.which(), orig_content)
-            .expect(format!("Write {} fail", self.which()).as_str());
+        std::fs::write(self.which(), &orig_content)
+            .with_context(|| {
+                format!("Fail to write new contents `{}` when remove", orig_content)
+            })?;
 
         Ok(())
     }
