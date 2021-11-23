@@ -8,5 +8,5 @@ fn test_host_file() {
 
     assert!(f.cat().len() != 0);
     assert_eq!(f.which(), HOST_FILE_PATH);
-    assert_eq!(f.read_bound_index(), (3, 12));
+    assert_eq!(f.read_bound_index(), Some((3, 12)));
 }
