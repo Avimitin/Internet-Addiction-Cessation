@@ -10,8 +10,16 @@ fn test_read_config() {
     assert_eq!(cfg.block_domains["youtube.com"], vec!["www"]);
 
     let block_domains = cfg.build_domains();
-    assert!(block_domains.contains("www.bilibili.com"));
-    assert!(block_domains.contains("bilibili.com"));
-    assert!(block_domains.contains("live.bilibili.com"));
-    assert!(block_domains.contains("www.youtube.com"));
+    println!("{:?}", block_domains);
+    let expect_domains = ["www.bilibili.com", "bilibili.com", "live.bilibili.com", "www.youtube.com"];
+    let mut match_count = 0;
+    for domain in block_domains {
+        for edomain in expect_domains {
+            if domain == edomain {
+                match_count += 1;
+                break;
+            }
+        }
+    }
+    assert_eq!(match_count, 4);
 }
