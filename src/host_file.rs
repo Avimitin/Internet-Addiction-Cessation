@@ -56,4 +56,41 @@ impl HostFile {
     pub fn read_bound_index(&self) -> Option<(u32, u32)> {
         self.bound_index
     }
+
+    fn exclude_domains(&self) -> String {
+        let mut s = String::new();
+        // return all contents when there is no bound exist
+        if let None = self.read_bound_index() {
+            return self.contents.clone();
+        }
+
+        let (i, j) = self.read_bound_index().unwrap();
+
+        let mut cur = 1;
+        for line in self.contents.lines() {
+            if cur < i || cur > j {
+                s.push_str(line);
+                s.push('\n');
+            }
+            cur+=1;
+        }
+
+        return s;
+    }
+
+    pub fn remove(&self) -> Result<(), Box<dyn Error>> {
+        let orig_content = self.exclude_domains();
+        std::fs::write(self.which(), orig_content)
+            .expect(format!("Write {} fail", self.which()).as_str());
+
+        Ok(())
+    }
 }
+
+#[test]
+fn test_exclude_domains() {
+    let hf = HostFile::new("./fixtures/hosts.txt").unwrap();
+    let s = hf.exclude_domains();
+    assert_eq!("127.0.0.1 localhost", s);
+}
+
