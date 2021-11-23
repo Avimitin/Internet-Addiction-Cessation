@@ -85,6 +85,33 @@ impl HostFile {
 
         Ok(())
     }
+
+    pub fn generate(&mut self, cfg: &crate::config::Config) -> Result<(), &'static str> {
+        // Do not generate domains when bound founded
+        if let Some(_) = self.read_bound_index() {
+            return Err("Domains generated");
+        }
+
+        let domains = cfg.build_domains();
+
+        self.contents.push('\n');
+        self.contents.push_str("## <!-- auto domain blocker -->\n");
+
+        let mut s = String::new();
+        for d in domains {
+            s.push_str("0.0.0.0 ");
+            s.push_str(&d);
+            s.push('\n');
+        }
+
+        self.contents.push_str(&s);
+        self.contents.push_str("## <!-- auto domain blocker -->\n");
+
+        std::fs::write(self.which(), &self.contents)
+            .expect(format!("Write {} into {} fail", self.contents, self.which()).as_str());
+
+        Ok(())
+    }
 }
 
 #[test]
