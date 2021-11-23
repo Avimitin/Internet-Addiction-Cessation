@@ -5,7 +5,7 @@ pub struct HostFile {
     // contents contain buffer of the host file
     contents: String,
     // bound_index store the start and end bound of the generated contents
-    bound_index: Option<(i32, i32)>,
+    bound_index: Option<(u32, u32)>,
 }
 
 #[allow(dead_code)]
@@ -33,9 +33,9 @@ impl HostFile {
         &self.location
     }
 
-    fn find_bound_index(input: &String) -> Option<(i32, i32)> {
+    fn find_bound_index(input: &String) -> Option<(u32, u32)> {
         let mut bound = (0, 0);
-        let mut i: i32 = 0;
+        let mut i: u32 = 0;
         let mut inside: bool = false;
         for line in input.lines() {
             i+=1;
@@ -53,7 +53,7 @@ impl HostFile {
         return None;
     }
 
-    pub fn read_bound_index(&self) -> Option<(i32, i32)> {
+    pub fn read_bound_index(&self) -> Option<(u32, u32)> {
         self.bound_index
     }
 }
