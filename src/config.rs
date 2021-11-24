@@ -1,6 +1,6 @@
 use serde::Deserialize;
 use std::collections::HashMap;
-use anyhow::Context;
+use anyhow::{Context, Result};
 
 #[allow(dead_code)]
 #[derive(Deserialize)]
@@ -21,13 +21,13 @@ pub struct Duration {
 impl Config {
     // new read from configuration file from given path and parse it into Config struct.
     // Panic when no file found or fail to parse the contents into the Config struct.
-    pub fn new(file_path: &str) -> Config {
+    pub fn new(file_path: &str) -> Result<Config> {
         let contents = std::fs::read_to_string(file_path)
-            .with_context(||{format!("Read config file {} fail", file_path)}).unwrap();
+            .with_context(||{format!("Read config file {} fail", file_path)})?;
         let config = toml::from_str(&contents)
-            .with_context(||{format!("failed to read from config: {}", contents)}).unwrap();
+            .with_context(||{format!("failed to read from config: {}", contents)})?;
 
-        return config;
+        return Ok(config);
     }
 
     pub fn build_domains(&self) -> Vec<String> {
