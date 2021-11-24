@@ -2,7 +2,7 @@ use auto_domain_blocker::config::Config;
 
 #[test]
 fn test_read_config() {
-    let cfg = Config::new("./fixtures/domains.toml");
+    let cfg = Config::new("./fixtures/domains.toml").unwrap();
 
     assert_eq!(cfg.duration.start, "08:30");
     assert_eq!(cfg.duration.end, "21:30");

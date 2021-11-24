@@ -21,6 +21,6 @@ fn test_host_file() {
 #[test]
 fn test_generate() {
     let mut f = host_file::HostFile::new(HOST_FILE_PATH).unwrap();
-    let cfg = Config::new(CFG_FILE_PATH);
+    let cfg = Config::new(CFG_FILE_PATH).unwrap();
     f.generate(&cfg).unwrap();
 }
