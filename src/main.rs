@@ -4,6 +4,12 @@ use auto_domain_blocker::{config, host_file};
 
 fn main() -> Result<()> {
     let app = build_cli_app();
+
+    if let Some(debug_opt) = app.subcommand_matches("debug") {
+        debug(debug_opt);
+        return Ok(());
+    }
+
     let path = app.value_of("config").unwrap_or("./domains.toml");
     let cfg = config::Config::new(path)?;
 
@@ -28,6 +34,25 @@ fn run(app: &ArgMatches, cfg: &config::Config) -> Result<()> {
     }
 
     Ok(())
+}
+
+fn debug(opt: &ArgMatches) {
+    let path = opt.value_of("config").unwrap();
+    println!("Reading config {}", path);
+
+    let host = opt.value_of("host").unwrap();
+    println!("Reading host file {}", host);
+
+    println!("Creating config");
+    let cfg = config::Config::new(path).unwrap();
+    println!("Creating host file");
+    let mut hf = host_file::HostFile::new(host).unwrap();
+
+    println!("Testing config generate");
+    hf.generate(&cfg).unwrap();
+
+    println!("Testing config remove");
+    hf.remove().unwrap();
 }
 
 fn build_cli_app() -> ArgMatches {
