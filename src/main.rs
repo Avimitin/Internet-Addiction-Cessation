@@ -2,40 +2,52 @@ use anyhow::{bail, Context, Result};
 use auto_domain_blocker::{config::Config, host_file::HostFile};
 use chrono::prelude::*;
 use clap::{App, Arg, ArgMatches};
+use log::info;
 
 fn main() -> Result<()> {
     let app = build_cli_app();
 
-    let path = app.value_of("config").unwrap_or("./domains.toml");
-    let cfg = Config::new(path)?;
+    env_logger::init();
 
-    run(&app, &cfg).with_context(|| format!("Run app with config: {} fail", path))?;
+    run(&app).with_context(|| format!("Fail to run block process"))?;
 
     Ok(())
 }
 
-fn run(app: &ArgMatches, cfg: &Config) -> Result<()> {
-    println!("Reading host file...");
+fn run(app: &ArgMatches) -> Result<()> {
+    info!("Reading host file...");
     let mut hf = HostFile::new("/etc/hosts")?;
 
-    if let Some(_) = app.subcommand_matches("block") {
-        println!("Running block process");
+    if let Some(b_opt) = app.subcommand_matches("block") {
+        let path = b_opt.value_of("config").unwrap_or("./domains.toml");
+        info!("Reading config file {}", path);
+        let cfg = Config::new(path)?;
 
-        hf.generate(cfg)?;
-        println!("URLs are all blocked");
+        info!("Running block process...");
+
+        hf.generate(&cfg)?;
+        info!("URL block process success");
         return Ok(());
     }
 
-    if let Some(_) = app.subcommand_matches("unblock") {
-        println!("Running unblock process");
+    if let Some(ub_opt) = app.subcommand_matches("unblock") {
+        info!("Running unblock process...");
+        let path = ub_opt.value_of("config").unwrap_or("./domains.toml");
+        info!("Reading config file {}", path);
+        let cfg = Config::new(path)?;
 
-        let can = can_unblock(cfg).with_context(|| format!("Fail to unblock domains"))?;
+
+        let can = can_unblock(&cfg).with_context(|| format!("Fail to unblock domains"))?;
 
         if !can {
+            println!("===============================================");
             println!("Focus on your work now!! It is not break time!!");
+            println!("===============================================");
         } else {
             hf.remove()?;
+            println!("===============================================");
             println!("Take a rest but don't too much~");
+            println!("===============================================");
         }
     }
 

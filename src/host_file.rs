@@ -92,7 +92,7 @@ impl HostFile {
     pub fn generate(&mut self, cfg: &crate::config::Config) -> Result<()> {
         // Do not generate domains when bound founded
         if let Some(_) = self.read_bound_index() {
-            bail!("Domains are generated");
+            bail!("URL is already blocked");
         }
 
         let domains = cfg.build_domains();
