@@ -1,6 +1,7 @@
-use clap::{App, ArgMatches, Arg};
-use anyhow::{Context, Result};
-use auto_domain_blocker::{config, host_file};
+use anyhow::{bail, Context, Result};
+use auto_domain_blocker::{config::Config, host_file::HostFile};
+use chrono::prelude::*;
+use clap::{App, Arg, ArgMatches};
 
 fn main() -> Result<()> {
     let app = build_cli_app();
@@ -11,19 +12,16 @@ fn main() -> Result<()> {
     }
 
     let path = app.value_of("config").unwrap_or("./domains.toml");
-    let cfg = config::Config::new(path)?;
+    let cfg = Config::new(path)?;
 
-    run(&app, &cfg)
-        .with_context(|| {
-            format!("Run app with config: {} fail", path)
-        })?;
+    run(&app, &cfg).with_context(|| format!("Run app with config: {} fail", path))?;
 
     Ok(())
 }
 
-fn run(app: &ArgMatches, cfg: &config::Config) -> Result<()> {
+fn run(app: &ArgMatches, cfg: &Config) -> Result<()> {
     println!("Reading host file...");
-    let mut hf = host_file::HostFile::new("/etc/hosts")?;
+    let mut hf = HostFile::new("/etc/hosts")?;
 
     if let Some(_) = app.subcommand_matches("block") {
         println!("Running block process");
@@ -35,10 +33,7 @@ fn run(app: &ArgMatches, cfg: &config::Config) -> Result<()> {
     if let Some(_) = app.subcommand_matches("unblock") {
         println!("Running unblock process");
 
-        let can = can_unblock(cfg)
-            .with_context(|| {
-                format!("Fail to unblock domains")
-            })?;
+        let can = can_unblock(cfg).with_context(|| format!("Fail to unblock domains"))?;
 
         if !can {
             println!("Focus on your work now!!");
@@ -73,9 +68,9 @@ fn debug(opt: &ArgMatches) {
     println!("Reading host file {}", host);
 
     println!("Creating config");
-    let cfg = config::Config::new(path).unwrap();
+    let cfg = Config::new(path).unwrap();
     println!("Creating host file");
-    let mut hf = host_file::HostFile::new(host).unwrap();
+    let mut hf = HostFile::new(host).unwrap();
 
     println!("Testing config generate");
     hf.generate(&cfg).unwrap();
@@ -92,29 +87,29 @@ fn build_cli_app() -> ArgMatches {
         .subcommands(vec![
             App::new("block")
                 .about("Block all the domains now when it is time to study")
-                    .arg(Arg::new("config")
+                .arg(
+                    Arg::new("config")
                         .short('c')
                         .long("config")
                         .value_name("CONFIG_PATH")
                         .about("Set the path to the user specific config file")
-                        .takes_value(true)),
+                        .takes_value(true),
+                ),
             App::new("unblock")
                 .about("Unblock all the domains only when it is time to relax")
-                    .arg(Arg::new("config")
+                .arg(
+                    Arg::new("config")
                         .short('c')
                         .long("config")
                         .value_name("CONFIG_PATH")
                         .about("Set the path to the user specific config file")
-                        .takes_value(true)),
+                        .takes_value(true),
+                ),
             App::new("debug")
                 .about("Use this to debug program")
                 .args(vec![
-                    Arg::new("config")
-                        .long("config")
-                        .value_name("DEBUG_CONFIG"),
-                    Arg::new("host")
-                        .long("host")
-                        .value_name("DEBUG_HOST_FILE"),
+                    Arg::new("config").long("config").value_name("DEBUG_CONFIG"),
+                    Arg::new("host").long("host").value_name("DEBUG_HOST_FILE"),
                 ]),
         ])
         .get_matches()
