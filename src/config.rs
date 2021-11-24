@@ -44,4 +44,17 @@ impl Config {
 
         return s;
     }
+
+    pub fn end_when(&self) -> Option<(u32, u32)> {
+        let v: Vec<&str> = self.duration.end.rsplit(':').collect();
+        if v.len() < 2 {
+            return None
+        }
+        let hour: u32 = v[1].parse().unwrap_or(0);
+        let min: u32 = v[0].parse().unwrap_or(0);
+        if hour == 0 && min == 0 {
+            return None;
+        }
+        Some((hour,min))
+    }
 }

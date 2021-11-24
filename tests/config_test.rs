@@ -22,4 +22,6 @@ fn test_read_config() {
         }
     }
     assert_eq!(match_count, 4);
+
+    assert_eq!(cfg.end_when().unwrap(), (21, 30));
 }
