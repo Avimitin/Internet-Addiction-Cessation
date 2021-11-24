@@ -20,17 +20,19 @@ fn test_host_file() {
 
 #[test]
 fn test_generate() {
-    let mut f = host_file::HostFile::new("./fixtures/emptyhosts.txt").unwrap();
+    let path = "./fixtures/emptyhosts.txt";
+    let backup = std::fs::read_to_string(path).unwrap();
+
+    let mut f = host_file::HostFile::new(path).unwrap();
     let cfg = Config::new(CFG_FILE_PATH).unwrap();
+
+    // Test generate
     f.generate(&cfg).unwrap();
     let contents = std::fs::read_to_string("./fixtures/emptyhosts.txt").unwrap();
-    assert_eq!(contents, "127.0.0.1 localhost
 
-## <!-- auto domain blocker -->
-0.0.0.0 www.bilibili.com
-0.0.0.0 live.bilibili.com
-0.0.0.0 bilibili.com
-0.0.0.0 www.youtube.com
-## <!-- auto domain blocker -->
-")
+    let mut i = 0;
+    for _ in contents.lines(){ i+=1; };
+    assert_eq!(i, 8);
+
+    std::fs::write(path, backup).unwrap();
 }
