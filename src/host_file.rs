@@ -112,7 +112,7 @@ impl HostFile {
 
         std::fs::write(self.which(), &self.contents)
             .with_context(|| {
-                format!("Write {} into {} fail", self.contents, self.which())
+                format!("Write contents into {} fail", self.which())
             })?;
 
         Ok(())

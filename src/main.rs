@@ -27,6 +27,7 @@ fn run(app: &ArgMatches, cfg: &Config) -> Result<()> {
         println!("Running block process");
 
         hf.generate(cfg)?;
+        println!("URLs are all blocked");
         return Ok(());
     }
 
@@ -36,7 +37,7 @@ fn run(app: &ArgMatches, cfg: &Config) -> Result<()> {
         let can = can_unblock(cfg).with_context(|| format!("Fail to unblock domains"))?;
 
         if !can {
-            println!("Focus on your work now!!");
+            println!("Focus on your work now!! It is not break time!!");
         } else {
             hf.remove()?;
             println!("Take a rest but don't too much~");
@@ -75,8 +76,17 @@ fn debug(opt: &ArgMatches) {
     println!("Testing config generate");
     hf.generate(&cfg).unwrap();
 
+    println!("Generated contents: \n");
+    println!("{}", hf.cat());
+
+    println!("Written contents: \n");
+    let file = std::fs::read_to_string(host).unwrap();
+    println!("{}", file);
+
     println!("Testing config remove");
     hf.remove().unwrap();
+
+    println!("Debug done");
 }
 
 fn build_cli_app() -> ArgMatches {
