@@ -22,15 +22,19 @@ fn main() -> Result<()> {
 }
 
 fn run(app: &ArgMatches, cfg: &config::Config) -> Result<()> {
-    if app.is_present("block") {
+    println!("Reading host file...");
+    let mut hf = host_file::HostFile::new("/etc/hosts")?;
+
+    if let Some(_) = app.subcommand_matches("block") {
         println!("Running block process");
-        let mut hf = host_file::HostFile::new("/etc/hosts")?;
 
         hf.generate(cfg)?;
     }
 
-    if app.is_present("unblock") {
+    if let Some(_) = app.subcommand_matches("unblock") {
         println!("Running unblock process");
+
+        hf.remove()?;
     }
 
     Ok(())
@@ -62,15 +66,31 @@ fn build_cli_app() -> ArgMatches {
         .about("This app help you get rid of internet addiction")
         .subcommands(vec![
             App::new("block")
-                .about("Block all the domains now when it is time to study"),
+                .about("Block all the domains now when it is time to study")
+                    .arg(Arg::new("config")
+                        .short('c')
+                        .long("config")
+                        .value_name("CONFIG_PATH")
+                        .about("Set the path to the user specific config file")
+                        .takes_value(true)),
             App::new("unblock")
-                .about("Unblock all the domains only when it is time to relax"),
+                .about("Unblock all the domains only when it is time to relax")
+                    .arg(Arg::new("config")
+                        .short('c')
+                        .long("config")
+                        .value_name("CONFIG_PATH")
+                        .about("Set the path to the user specific config file")
+                        .takes_value(true)),
+            App::new("debug")
+                .about("Use this to debug program")
+                .args(vec![
+                    Arg::new("config")
+                        .long("config")
+                        .value_name("DEBUG_CONFIG"),
+                    Arg::new("host")
+                        .long("host")
+                        .value_name("DEBUG_HOST_FILE"),
+                ]),
         ])
-        .arg(Arg::new("config")
-            .short('c')
-            .long("config")
-            .value_name("CONFIG_PATH")
-            .about("Set the path to the user specific config file")
-            .takes_value(true))
         .get_matches()
 }
