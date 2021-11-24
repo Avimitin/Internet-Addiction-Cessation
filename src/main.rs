@@ -35,10 +35,34 @@ fn run(app: &ArgMatches, cfg: &config::Config) -> Result<()> {
     if let Some(_) = app.subcommand_matches("unblock") {
         println!("Running unblock process");
 
-        hf.remove()?;
+        let can = can_unblock(cfg)
+            .with_context(|| {
+                format!("Fail to unblock domains")
+            })?;
+
+        if !can {
+            println!("Focus on your work now!!");
+        } else {
+            hf.remove()?;
+            println!("Take a rest but don't too much~");
+        }
     }
 
     Ok(())
+}
+
+fn can_unblock(cfg: &Config) -> Result<bool> {
+    let local_now = Local::now();
+    if let None = cfg.end_when() {
+        bail!("Invalid time {}", cfg.duration.end);
+    }
+    let end_setting = cfg.end_when().unwrap();
+    let end = Local::today().and_hms(end_setting.0, end_setting.1, 0);
+    if local_now < end {
+        return Ok(false);
+    }
+
+    Ok(true)
 }
 
 fn debug(opt: &ArgMatches) {
