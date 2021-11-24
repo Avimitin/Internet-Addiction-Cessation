@@ -123,6 +123,6 @@ impl HostFile {
 fn test_exclude_domains() {
     let hf = HostFile::new("./fixtures/hosts.txt").unwrap();
     let s = hf.exclude_domains();
-    assert_eq!("127.0.0.1 localhost", s);
+    assert_eq!("127.0.0.1 localhost\n\n", s);
 }
 
