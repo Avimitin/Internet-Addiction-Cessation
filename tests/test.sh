@@ -1,5 +1,5 @@
 #!/bin/sh
 
 set -xe
-cargo test
+RUST_LOG=info cargo test
 cargo build
