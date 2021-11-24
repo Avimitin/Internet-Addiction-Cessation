@@ -29,6 +29,7 @@ fn run(app: &ArgMatches, cfg: &config::Config) -> Result<()> {
         println!("Running block process");
 
         hf.generate(cfg)?;
+        return Ok(());
     }
 
     if let Some(_) = app.subcommand_matches("unblock") {
