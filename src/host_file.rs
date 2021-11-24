@@ -9,7 +9,7 @@ pub struct HostFile {
 }
 
 #[allow(dead_code)]
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, bail};
 impl HostFile {
     // new read conents from given file path and return a HostFile instance if
     // read success.
@@ -89,10 +89,10 @@ impl HostFile {
         Ok(())
     }
 
-    pub fn generate(&mut self, cfg: &crate::config::Config) -> Result<(), &'static str> {
+    pub fn generate(&mut self, cfg: &crate::config::Config) -> Result<()> {
         // Do not generate domains when bound founded
         if let Some(_) = self.read_bound_index() {
-            return Err("Domains generated");
+            bail!("Domains are generated");
         }
 
         let domains = cfg.build_domains();
@@ -111,7 +111,9 @@ impl HostFile {
         self.contents.push_str("## <!-- auto domain blocker -->\n");
 
         std::fs::write(self.which(), &self.contents)
-            .expect(format!("Write {} into {} fail", self.contents, self.which()).as_str());
+            .with_context(|| {
+                format!("Write {} into {} fail", self.contents, self.which())
+            })?;
 
         Ok(())
     }
