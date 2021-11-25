@@ -2,12 +2,17 @@ use anyhow::{bail, Context, Result};
 use auto_domain_blocker::{config::Config, host_file::HostFile};
 use chrono::prelude::*;
 use clap::{App, Arg, ArgMatches};
-use log::info;
+use tracing::{info, Level};
+use tracing_subscriber::FmtSubscriber;
 
 fn main() -> Result<()> {
-    let app = build_cli_app();
+    let subscriber = FmtSubscriber::builder()
+        .with_max_level(Level::INFO)
+        .finish();
+    tracing::subscriber::set_global_default(subscriber)
+        .with_context(||{ format!("Fail to set tracing logger") })?;
 
-    env_logger::init();
+    let app = build_cli_app();
 
     run(&app).with_context(|| format!("Fail to run block process"))?;
 
@@ -35,7 +40,6 @@ fn run(app: &ArgMatches) -> Result<()> {
         let path = ub_opt.value_of("config").unwrap_or("./domains.toml");
         info!("Reading config file {}", path);
         let cfg = Config::new(path)?;
-
 
         let can = can_unblock(&cfg).with_context(|| format!("Fail to unblock domains"))?;
 

@@ -1,9 +1,14 @@
 use auto_domain_blocker::{config::Config, host_file::HostFile};
-use log::info;
+use tracing::{info, Level};
+use tracing_subscriber::FmtSubscriber;
 
 #[test]
 fn test_all() {
-    env_logger::init();
+    let subscriber = FmtSubscriber::builder()
+        .with_max_level(Level::INFO)
+        .finish();
+
+    tracing::subscriber::set_global_default(subscriber).unwrap();
 
     let path = "./fixtures/domains.toml";
     info!("Reading config {}", path);
