@@ -10,11 +10,11 @@ fn main() -> Result<()> {
         .with_max_level(Level::INFO)
         .finish();
     tracing::subscriber::set_global_default(subscriber)
-        .with_context(||{ format!("Fail to set tracing logger") })?;
+        .with_context(|| "Fail to set tracing logger")?;
 
     let app = build_cli_app();
 
-    run(&app).with_context(|| format!("Fail to run block process"))?;
+    run(&app).with_context(|| "Fail to run block process")?;
 
     Ok(())
 }
@@ -41,7 +41,7 @@ fn run(app: &ArgMatches) -> Result<()> {
         info!("Reading config file {}", path);
         let cfg = Config::new(path)?;
 
-        let can = can_unblock(&cfg).with_context(|| format!("Fail to unblock domains"))?;
+        let can = can_unblock(&cfg).with_context(|| "Fail to unblock domains")?;
 
         if !can {
             println!("===============================================");
@@ -60,7 +60,7 @@ fn run(app: &ArgMatches) -> Result<()> {
 
 fn can_unblock(cfg: &Config) -> Result<bool> {
     let local_now = Local::now();
-    if let None = cfg.end_when() {
+    if cfg.end_when().is_none() {
         bail!("Invalid time {}", cfg.duration.end);
     }
     let end_setting = cfg.end_when().unwrap();

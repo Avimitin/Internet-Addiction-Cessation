@@ -8,7 +8,6 @@ pub struct HostFile {
     bound_index: Option<(u32, u32)>,
 }
 
-#[allow(dead_code)]
 use anyhow::{Context, Result, bail};
 impl HostFile {
     // new read conents from given file path and return a HostFile instance if
@@ -34,7 +33,7 @@ impl HostFile {
         &self.location
     }
 
-    fn find_bound_index(input: &String) -> Option<(u32, u32)> {
+    fn find_bound_index(input: &str) -> Option<(u32, u32)> {
         let mut bound = (0, 0);
         let mut i: u32 = 0;
         let mut inside: bool = false;
@@ -51,7 +50,7 @@ impl HostFile {
             }
         }
 
-        return None;
+        None
     }
 
     pub fn read_bound_index(&self) -> Option<(u32, u32)> {
@@ -61,7 +60,7 @@ impl HostFile {
     fn exclude_domains(&self) -> String {
         let mut s = String::new();
         // return all contents when there is no bound exist
-        if let None = self.read_bound_index() {
+        if self.read_bound_index().is_none() {
             return self.contents.clone();
         }
 
@@ -76,7 +75,7 @@ impl HostFile {
             cur+=1;
         }
 
-        return s;
+        s
     }
 
     pub fn remove(&self) -> Result<()> {
@@ -91,7 +90,7 @@ impl HostFile {
 
     pub fn generate(&mut self, cfg: &crate::config::Config) -> Result<()> {
         // Do not generate domains when bound founded
-        if let Some(_) = self.read_bound_index() {
+        if  self.read_bound_index().is_some() {
             bail!("URL is already blocked");
         }
 

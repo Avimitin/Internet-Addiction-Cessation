@@ -27,7 +27,7 @@ impl Config {
         let config = toml::from_str(&contents)
             .with_context(||{format!("failed to read from config: {}", contents)})?;
 
-        return Ok(config);
+        Ok(config)
     }
 
     pub fn build_domains(&self) -> Vec<String> {
@@ -35,14 +35,14 @@ impl Config {
         for (k, v) in &self.block_domains {
             for prefix in v {
                 if prefix == "@" {
-                    s.push(format!("{domain}", domain = k));
+                    s.push(k.to_string());
                 } else {
                     s.push(format!("{prefix}.{domain}", prefix = prefix, domain = k));
                 }
             }
         }
 
-        return s;
+        s
     }
 
     pub fn end_when(&self) -> Option<(u32, u32)> {
