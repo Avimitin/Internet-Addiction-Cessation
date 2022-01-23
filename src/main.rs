@@ -26,6 +26,7 @@ fn run(app: &ArgMatches) -> Result<()> {
     if let Some(b_opt) = app.subcommand_matches("block") {
         let path = b_opt.value_of("config").unwrap_or("./domains.toml");
         info!("Reading config file {}", path);
+        sudo::escalate_if_needed().unwrap();
         let cfg = Config::new(path)?;
 
         info!("Running block process...");
@@ -37,6 +38,7 @@ fn run(app: &ArgMatches) -> Result<()> {
 
     if let Some(ub_opt) = app.subcommand_matches("unblock") {
         info!("Running unblock process...");
+        sudo::escalate_if_needed().unwrap();
         let path = ub_opt.value_of("config").unwrap_or("./domains.toml");
         info!("Reading config file {}", path);
         let cfg = Config::new(path)?;
