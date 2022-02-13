@@ -87,7 +87,7 @@ fn build_cli_app() -> ArgMatches {
                         .short('c')
                         .long("config")
                         .value_name("CONFIG_PATH")
-                        .about("Set the path to the user specific config file")
+                        .help("Set the path to the user specific config file")
                         .takes_value(true),
                 ),
             App::new("unblock")
@@ -97,7 +97,7 @@ fn build_cli_app() -> ArgMatches {
                         .short('c')
                         .long("config")
                         .value_name("CONFIG_PATH")
-                        .about("Set the path to the user specific config file")
+                        .help("Set the path to the user specific config file")
                         .takes_value(true),
                 ),
         ])
