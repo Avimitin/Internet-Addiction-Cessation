@@ -1,9 +1,41 @@
 use anyhow::{bail, Context, Result};
+use argh::FromArgs;
 use auto_domain_blocker::{config::Config, host_file::HostFile};
 use chrono::prelude::*;
-use clap::{App, Arg, ArgMatches};
-use tracing::{info, Level};
+use tracing::{error, info, Level};
 use tracing_subscriber::FmtSubscriber;
+
+#[derive(FromArgs, Debug, PartialEq)]
+/// This app help you get rid of internet addiction
+struct Args {
+    #[argh(subcommand)]
+    nested: SubCommands,
+}
+
+#[derive(FromArgs, Debug, PartialEq)]
+#[argh(subcommand)]
+enum SubCommands {
+    Block(CfgPathBlock),
+    UnBlock(CfgPathUnBlock),
+}
+
+#[derive(FromArgs, Debug, PartialEq)]
+#[argh(subcommand, name = "block")]
+/// defining where the config is
+struct CfgPathBlock {
+    #[argh(short = 'p', option, default = "String::from(\"./domains.toml\")")]
+    /// specify the config path
+    path: String,
+}
+
+#[derive(FromArgs, Debug, PartialEq)]
+#[argh(subcommand, name = "unblock")]
+/// defining where the config is
+struct CfgPathUnBlock {
+    #[argh(short = 'p', option, default = "String::from(\"./domains.toml\")")]
+    /// specify the config path
+    path: String,
+}
 
 fn main() -> Result<()> {
     let subscriber = FmtSubscriber::builder()
@@ -13,48 +45,42 @@ fn main() -> Result<()> {
     tracing::subscriber::set_global_default(subscriber)
         .with_context(|| "Fail to set tracing logger")?;
 
-    let app = build_cli_app();
+    let args: Args = argh::from_env();
 
-    run(&app).with_context(|| "Fail to run block process")?;
+    run(&args).with_context(|| "Fail to run block process")?;
 
     Ok(())
 }
 
-fn run(app: &ArgMatches) -> Result<()> {
+fn run(app: &Args) -> Result<()> {
     info!("Reading host file...");
     let mut hf = HostFile::new("/etc/hosts")?;
 
-    if let Some(b_opt) = app.subcommand_matches("block") {
-        let path = b_opt.value_of("config").unwrap_or("./domains.toml");
-        info!("Reading config file {}", path);
-        sudo::escalate_if_needed().unwrap();
-        let cfg = Config::new(path)?;
+    match &app.nested {
+        SubCommands::Block(path) => {
+            let cfg_path = &path.path;
+            info!("Reading config file {}", cfg_path);
+            sudo::escalate_if_needed().unwrap();
+            let cfg = Config::new(cfg_path)?;
+            info!("Running block process...");
+            hf.generate(&cfg)?;
+            info!("URL block process success");
+        }
+        SubCommands::UnBlock(path) => {
+            info!("Running unblock process...");
+            sudo::escalate_if_needed().unwrap();
+            let cfg_path = &path.path;
+            info!("Reading config file {}", cfg_path);
+            let cfg = Config::new(cfg_path)?;
 
-        info!("Running block process...");
+            let can = can_unblock(&cfg).with_context(|| "Fail to unblock domains")?;
 
-        hf.generate(&cfg)?;
-        info!("URL block process success");
-        return Ok(());
-    }
-
-    if let Some(ub_opt) = app.subcommand_matches("unblock") {
-        info!("Running unblock process...");
-        sudo::escalate_if_needed().unwrap();
-        let path = ub_opt.value_of("config").unwrap_or("./domains.toml");
-        info!("Reading config file {}", path);
-        let cfg = Config::new(path)?;
-
-        let can = can_unblock(&cfg).with_context(|| "Fail to unblock domains")?;
-
-        if !can {
-            println!("===============================================");
-            println!("Focus on your work now!! It is not break time!!");
-            println!("===============================================");
-        } else {
-            hf.remove()?;
-            println!("===============================================");
-            println!("Take a rest but don't too much~");
-            println!("===============================================");
+            if !can {
+                error!("It is not the time for rest, you can't unblock those domains");
+            } else {
+                hf.remove()?;
+                info!("Domains unblocked. Take a break, but don't overdo it");
+            }
         }
     }
 
@@ -73,34 +99,4 @@ fn can_unblock(cfg: &Config) -> Result<bool> {
     }
 
     Ok(true)
-}
-
-fn build_cli_app() -> ArgMatches {
-    App::new("Auto domains blocker")
-        .version("0.1")
-        .author("Avimitin <avimitin@gmail.com>")
-        .about("This app help you get rid of internet addiction")
-        .subcommands(vec![
-            App::new("block")
-                .about("Block all the domains now when it is time to study")
-                .arg(
-                    Arg::new("config")
-                        .short('c')
-                        .long("config")
-                        .value_name("CONFIG_PATH")
-                        .help("Set the path to the user specific config file")
-                        .takes_value(true),
-                ),
-            App::new("unblock")
-                .about("Unblock all the domains only when it is time to relax")
-                .arg(
-                    Arg::new("config")
-                        .short('c')
-                        .long("config")
-                        .value_name("CONFIG_PATH")
-                        .help("Set the path to the user specific config file")
-                        .takes_value(true),
-                ),
-        ])
-        .get_matches()
 }
