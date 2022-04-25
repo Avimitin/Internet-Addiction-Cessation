@@ -8,6 +8,7 @@ use tracing_subscriber::FmtSubscriber;
 fn main() -> Result<()> {
     let subscriber = FmtSubscriber::builder()
         .with_max_level(Level::INFO)
+        .without_time()
         .finish();
     tracing::subscriber::set_global_default(subscriber)
         .with_context(|| "Fail to set tracing logger")?;
