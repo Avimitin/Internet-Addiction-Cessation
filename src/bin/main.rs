@@ -1,6 +1,6 @@
 use anyhow::{bail, Context, Result};
 use argh::FromArgs;
-use auto_domain_blocker::{config::Config, host_file::HostFile};
+use internet_addiction_cessation::{config::Config, host_file::HostFile};
 use chrono::prelude::*;
 use tracing::{error, info, Level};
 use tracing_subscriber::FmtSubscriber;
