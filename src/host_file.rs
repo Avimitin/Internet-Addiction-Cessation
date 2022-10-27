@@ -1,14 +1,14 @@
 #[allow(dead_code)]
 pub struct HostFile {
     // location point to host file's file path
-    location: String,
+    pub location: String,
     // contents contain buffer of the host file
-    contents: String,
+    pub contents: String,
     // bound_index store the start and end bound of the generated contents
-    bound_index: Option<(u32, u32)>,
+    pub bound_index: Option<(usize, usize)>,
 }
 
-use anyhow::{Context, Result, bail};
+use anyhow::{bail, Context, Result};
 impl HostFile {
     // new read conents from given file path and return a HostFile instance if
     // read success.
@@ -23,56 +23,40 @@ impl HostFile {
         })
     }
 
-    // cat return a copy of the file inner contents
-    pub fn cat(&self) -> &str {
-        &self.contents
-    }
-
-    // which return the file path of this host file
-    pub fn which(&self) -> &str {
-        &self.location
-    }
-
-    fn find_bound_index(input: &str) -> Option<(u32, u32)> {
+    fn find_bound_index(input: &str) -> Option<(usize, usize)> {
         let mut bound = (0, 0);
-        let mut i: u32 = 0;
         let mut inside: bool = false;
-        for line in input.lines() {
-            i+=1;
-            if line.contains("## <!-- auto domain blocker -->") {
-                if !inside {
-                    bound.0 = i;
-                    inside = true;
-                } else {
-                    bound.1 = i;
-                    return Some(bound);
-                }
+        for (i, line) in input.lines().enumerate() {
+            if !line.contains("## <!-- auto domain blocker -->") {
+                continue;
             }
+
+            if inside {
+                bound.1 = i;
+                return Some(bound);
+            }
+
+            bound.0 = i;
+            inside = true;
         }
 
         None
     }
 
-    pub fn read_bound_index(&self) -> Option<(u32, u32)> {
-        self.bound_index
-    }
-
     fn exclude_domains(&self) -> String {
-        let mut s = String::new();
         // return all contents when there is no bound exist
-        if self.read_bound_index().is_none() {
+        if self.bound_index.is_none() {
             return self.contents.clone();
         }
 
-        let (i, j) = self.read_bound_index().unwrap();
+        let mut s = String::new();
+        let (i, j) = self.bound_index.unwrap();
 
-        let mut cur = 1;
-        for line in self.contents.lines() {
+        for (cur, line) in self.contents.lines().enumerate() {
             if cur < i || cur > j {
                 s.push_str(line);
                 s.push('\n');
             }
-            cur+=1;
         }
 
         s
@@ -80,39 +64,32 @@ impl HostFile {
 
     pub fn remove(&self) -> Result<()> {
         let orig_content = self.exclude_domains();
-        std::fs::write(self.which(), &orig_content)
-            .with_context(|| {
-                format!("Fail to write new contents `{}` when remove", orig_content)
-            })?;
+        std::fs::write(&self.location, &orig_content).with_context(|| {
+            format!("Fail to write new contents `{}` when remove", orig_content)
+        })?;
 
         Ok(())
     }
 
     pub fn generate(&mut self, cfg: &crate::config::Config) -> Result<()> {
         // Do not generate domains when bound founded
-        if  self.read_bound_index().is_some() {
+        if self.bound_index.is_some() {
             bail!("URL is already blocked");
         }
 
         let domains = cfg.build_domains();
 
-        self.contents.push('\n');
-        self.contents.push_str("## <!-- auto domain blocker -->\n");
+        let should_be_block = domains.into_iter().fold(
+            "## <!-- auto domain blocker -->".to_string(),
+            |before, current| format!("{before}\n0.0.0.0 {current}"),
+        );
 
-        let mut s = String::new();
-        for d in domains {
-            s.push_str("0.0.0.0 ");
-            s.push_str(&d);
-            s.push('\n');
-        }
+        self.contents.push_str(&should_be_block);
+        self.contents
+            .push_str("\n## <!-- auto domain blocker -->\n");
 
-        self.contents.push_str(&s);
-        self.contents.push_str("## <!-- auto domain blocker -->\n");
-
-        std::fs::write(self.which(), &self.contents)
-            .with_context(|| {
-                format!("Write contents into {} fail", self.which())
-            })?;
+        std::fs::write(&self.location, &self.contents)
+            .with_context(|| format!("Write contents into {} fail", &self.location))?;
 
         Ok(())
     }
@@ -124,4 +101,3 @@ fn test_exclude_domains() {
     let s = hf.exclude_domains();
     assert_eq!("127.0.0.1 localhost\n\n", s);
 }
-

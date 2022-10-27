@@ -14,3 +14,10 @@ tracing = "0.1.29"
 tracing-subscriber = "0.3.2"
 sudo = "0.6.0"
 argh = "0.1.7"
+
+[profile.release]
+debug = 0
+strip = "symbols"
+lto = true
+opt-level = 3
+codegen-units = 1
