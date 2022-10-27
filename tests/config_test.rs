@@ -1,4 +1,4 @@
-use auto_domain_blocker::config::Config;
+use internet_addiction_cessation::config::Config;
 
 #[test]
 fn test_read_config() {
