@@ -78,7 +78,7 @@ fn run(app: &Args) -> Result<()> {
             if !can {
                 error!("It is not the time for rest, you can't unblock those domains");
             } else {
-                hf.remove()?;
+                hf.recover()?;
                 info!("Domains unblocked. Take a break, but don't overdo it");
             }
         }

@@ -43,7 +43,7 @@ impl HostFile {
         None
     }
 
-    fn exclude_domains(&self) -> String {
+    fn remove_blocks(&self) -> String {
         // return all contents when there is no bound exist
         if self.bound_index.is_none() {
             return self.contents.clone();
@@ -62,8 +62,8 @@ impl HostFile {
         s
     }
 
-    pub fn remove(&self) -> Result<()> {
-        let orig_content = self.exclude_domains();
+    pub fn recover(&self) -> Result<()> {
+        let orig_content = self.remove_blocks();
         std::fs::write(&self.location, &orig_content).with_context(|| {
             format!("Fail to write new contents `{}` when remove", orig_content)
         })?;
@@ -98,6 +98,6 @@ impl HostFile {
 #[test]
 fn test_exclude_domains() {
     let hf = HostFile::new("./fixtures/hosts.txt").unwrap();
-    let s = hf.exclude_domains();
+    let s = hf.remove_blocks();
     assert_eq!("127.0.0.1 localhost\n\n", s);
 }
