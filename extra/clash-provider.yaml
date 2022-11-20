@@ -1,0 +1,6 @@
+payload:
+  - DOMAIN,www.bilibili.com
+  - DOMAIN,t.bilibili.com
+  - DOMAIN,bilibili.com
+  - DOMAIN-SUFFIX,youtube.com
+  - DOMAIN-SUFFIX,twitter.com
